@@ -429,7 +429,7 @@ $("send").onclick=async()=>{
       const day=s.day;
       if($("aHol").checked!==!!extraHol[day]){ if($("aHol").checked) await db.put(`holidays/${day}`,true); else await db.del(`holidays/${day}`); }
       adminMap[s.id]={doctor:pick.doctor,t:Date.now()}; await db.put("admin",adminMap);
-      await db.push(`votes/${day}`,{shift:s.id,load:pick.load,t:Date.now(),admin:true});
+      await db.push(`votes/${day}`,{shift:s.id,doctor:pick.doctor,load:pick.load,t:Date.now(),admin:true});
     }else{
       await db.push(`votes/${s.day}`,{shift:s.id,doctor:pick.doctor,load:pick.load,t:Date.now(),...fix});
       voted[s.id]=1; LS.set("sk_voted2",voted);
