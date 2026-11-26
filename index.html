@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>الطبيب المناوب – مركز السكلر</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;600;800&display=swap" rel="stylesheet">
+<style>
+/*
+VOICE: calm, clinical, reassuring; one giant answer.
+IDEA: a living blood-smear that tints with the ward's load.
+PICTURE: animated building + doctor scene, sickle cells drifting in waves behind.
+COLOUR and TYPE: one hue family set by load (green→yellow→orange→red); Readex Pro.
+LAYOUT: scene, label, shift chip, giant name, source tag, today's shifts, load meter, action.
+*/
+:root{--h1:#0f9d6b;--h2:#0b6b4a;--glow:#7ef0c0;--ink:#fff;--bg1:#052a1e;--bg2:#0a4a35}
+*{box-sizing:border-box;min-width:0}
+html,body{min-height:100%}
+body{margin:0;font-family:"Readex Pro",Tahoma,sans-serif;color:var(--ink);
+  background:radial-gradient(120% 90% at 50% 10%,var(--bg2),var(--bg1)) fixed;overflow-x:clip;transition:background 1.6s}
+#cells{position:fixed;inset:0;width:100%;height:100%;z-index:0}
+main{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;
+  padding:clamp(16px,3vw,40px) max(4vw,14px) 40px;text-align:center}
+.top{position:fixed;top:10px;inset-inline:10px;z-index:3;display:flex;justify-content:space-between;gap:8px;pointer-events:none}
+.pill{font-size:13px;background:rgba(0,0,0,.4);padding:6px 12px;border-radius:999px;backdrop-filter:blur(6px);white-space:nowrap}
+.scene{width:min(520px,90vw);aspect-ratio:16/9;margin-top:26px}
+.scene svg{width:100%;height:100%;overflow:visible}
+.bld{animation:rise 1.2s cubic-bezier(.2,.8,.2,1) both}
+.doc{animation:walk 1.4s .6s cubic-bezier(.2,.8,.2,1) both}
+.wave{transform-origin:268px 146px;animation:wave 1.6s 2s ease-in-out infinite}
+.win{animation:blink 3s infinite}
+.cross{animation:pulse 2s infinite;transform-origin:center;transform-box:fill-box}
+@keyframes rise{from{transform:translateY(40px);opacity:0}}
+@keyframes walk{from{transform:translateX(-120px);opacity:0}}
+@keyframes wave{0%,100%{transform:rotate(0)}50%{transform:rotate(-22deg)}}
+@keyframes blink{0%,100%{opacity:.95}50%{opacity:.55}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+.label{font-size:clamp(16px,2.6vw,22px);margin:10px 0 0;opacity:.92;text-wrap:balance}
+.label b{font-weight:600}
+.chip{display:inline-flex;gap:8px;align-items:center;margin-top:12px;background:rgba(255,255,255,.14);
+  border:1px solid rgba(255,255,255,.25);padding:7px 16px;border-radius:999px;font-size:16px}
+.chip b{font-weight:600}.chip span{white-space:nowrap;opacity:.85}
+.name{font-weight:800;line-height:1.05;margin:.15em 0 .12em;font-size:clamp(54px,12.5vw,180px);
+  text-wrap:balance;text-shadow:0 0 40px var(--glow),0 6px 30px rgba(0,0,0,.35);
+  animation:pop .9s 1.2s cubic-bezier(.2,1.4,.3,1) both}
+.name.swap{animation:pop .7s cubic-bezier(.2,1.4,.3,1) both}
+@keyframes pop{from{transform:scale(.6);opacity:0;filter:blur(8px)}}
+.tag{display:inline-block;font-size:14px;padding:5px 14px;border-radius:999px;margin:0}
+.tag.exp{background:rgba(255,255,255,.12);border:1px dashed rgba(255,255,255,.6)}
+.tag.vote{background:#fff;color:var(--h2);font-weight:600}
+.tag.adm{background:#111;color:#fff;font-weight:600}
+.meta{font-size:13px;opacity:.7;margin:8px 0 0}
+.today{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;width:min(640px,94vw);margin-top:22px}
+.sh{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:16px;padding:10px 8px;font-size:13px;line-height:1.45}
+.sh.now{background:rgba(255,255,255,.2);border-color:#fff}
+.sh b{display:block;font-size:15px}.sh .t{white-space:nowrap;opacity:.8}.sh .d{display:block;margin-top:4px;font-weight:600;font-size:14px}
+.sh .s{font-size:12px;opacity:.7}
+.load{margin:14px auto 0;width:min(640px,94vw);background:rgba(255,255,255,.1);
+  border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:12px 16px;backdrop-filter:blur(8px)}
+.load .row{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:15px;flex-wrap:wrap}
+.load strong{font-size:18px}
+.bar{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}
+.bar i{height:10px;border-radius:6px;opacity:.28;transition:opacity .6s,transform .6s}
+.bar i.on{opacity:1;transform:scaleY(1.3)}
+.bar i:nth-child(1){background:#22c55e}.bar i:nth-child(2){background:#facc15}.bar i:nth-child(3){background:#fb923c}.bar i:nth-child(4){background:#ef4444}
+.cta{margin-top:24px;font:600 17px "Readex Pro",sans-serif;color:var(--h2);background:#fff;border:0;
+  border-radius:999px;padding:14px 26px;min-height:50px;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,.25);transition:transform .2s}
+.cta:hover{transform:translateY(-2px)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--glow);outline-offset:3px}
+.note{font-size:13px;opacity:.7;margin-top:10px;max-width:520px}
+footer{position:relative;z-index:1;text-align:center;font-size:13px;opacity:.75;padding:18px max(4vw,14px) 26px;border-top:1px solid rgba(255,255,255,.15);max-width:640px;margin:0 auto;text-wrap:balance}
+@media(max-width:560px){.today{grid-template-columns:1fr}.sh{display:flex;justify-content:space-between;align-items:center;gap:8px;text-align:start}.sh .d{margin:0;text-align:end}}
+/* sheet */
+.veil{position:fixed;inset:0;z-index:5;background:rgba(0,0,0,.55);display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
+.veil.open{display:flex}
+.sheet{width:min(560px,100%);max-height:92vh;overflow:auto;background:#fff;color:#111;border-radius:26px 26px 0 0;padding:22px 20px 28px;animation:up .4s cubic-bezier(.2,.9,.2,1)}
+@media(min-width:700px){.veil{align-items:center}.sheet{border-radius:26px}}
+@keyframes up{from{transform:translateY(60px);opacity:0}}
+.sheet h2{margin:0 0 4px;font-size:22px}.sheet h3{margin:18px 0 8px;font-size:16px;color:#444}
+.x{float:left;border:0;background:#eee;border-radius:50%;width:40px;height:40px;font-size:20px;cursor:pointer}
+.info{background:color-mix(in srgb,var(--h1) 12%,#fff);border-radius:14px;padding:10px 14px;margin-top:12px;font-size:15px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.opt{font:400 15px "Readex Pro",sans-serif;border:2px solid #e5e7eb;background:#fafafa;border-radius:14px;
+  padding:11px 8px;min-height:48px;cursor:pointer;text-align:center;color:#111;transition:.2s}
+.opt[aria-pressed=true]{border-color:var(--h1);background:color-mix(in srgb,var(--h1) 14%,#fff);font-weight:600}
+.opt small{display:block;font-size:13px;color:#666}
+.send{width:100%;margin-top:18px;font:600 17px "Readex Pro",sans-serif;border:0;border-radius:14px;min-height:52px;background:var(--h1);color:#fff;cursor:pointer}
+.send.dark{background:#111}.send.ghost{background:#eee;color:#111;margin-top:8px}
+.send:disabled{opacity:.4;cursor:not-allowed}
+.status{margin-top:12px;font-size:15px;line-height:1.6}
+.status.err{color:#b91c1c}.status.ok{color:#15803d}
+.spin{display:inline-block;width:18px;height:18px;border:3px solid #ccc;border-top-color:var(--h1);border-radius:50%;animation:r 1s linear infinite;vertical-align:middle}
+@keyframes r{to{transform:rotate(360deg)}}
+.admin{margin-top:22px;border-top:1px solid #eee;padding-top:14px}
+.link{background:none;border:0;color:#555;font:400 14px "Readex Pro",sans-serif;text-decoration:underline;cursor:pointer;min-height:44px}
+.fld{width:100%;font:16px "Readex Pro",sans-serif;border:2px solid #e5e7eb;border-radius:12px;padding:11px 12px;margin-top:6px;background:#fff;color:#111}
+.chk{display:flex;gap:10px;align-items:center;margin-top:14px;font-size:15px}
+.chk input{width:22px;height:22px}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<canvas id="cells" aria-hidden="true"></canvas>
+<div class="top">
+  <span class="pill" id="visits">👁 زوار اليوم: —</span>
+  <span class="pill" id="demo" hidden>وضع تجريبي – محلي</span>
+</div>
+
+<main>
+  <div class="scene" aria-hidden="true">
+    <svg viewBox="0 0 400 225">
+      <defs>
+        <linearGradient id="gW" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#dfe7ec"/></linearGradient>
+        <linearGradient id="gS" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#c7d3da"/><stop offset="1" stop-color="#9fb0ba"/></linearGradient>
+      </defs>
+      <ellipse cx="200" cy="214" rx="190" ry="10" fill="rgba(0,0,0,.25)"/>
+      <g class="bld">
+        <rect x="70" y="50" width="200" height="160" rx="6" fill="url(#gW)"/>
+        <rect x="270" y="70" width="40" height="140" fill="url(#gS)"/>
+        <polygon points="270,50 310,70 270,70" fill="#b6c4cc"/>
+        <rect x="70" y="44" width="200" height="10" rx="3" fill="var(--h2)"/>
+        <g id="wins"></g>
+        <rect x="145" y="160" width="50" height="50" rx="4" fill="var(--h2)"/>
+        <rect x="150" y="165" width="19" height="45" fill="rgba(255,255,255,.35)"/>
+        <rect x="171" y="165" width="19" height="45" fill="rgba(255,255,255,.25)"/>
+        <g class="cross"><rect x="160" y="62" width="20" height="6" rx="2" fill="#ef4444"/><rect x="167" y="55" width="6" height="20" rx="2" fill="#ef4444"/></g>
+        <text x="170" y="150" text-anchor="middle" font-size="10" font-weight="600" fill="var(--h2)" font-family="Readex Pro">مركز أمراض الدم الوراثية</text>
+      </g>
+      <g class="doc">
+        <ellipse cx="250" cy="211" rx="22" ry="4" fill="rgba(0,0,0,.3)"/>
+        <rect x="238" y="180" width="9" height="30" rx="3" fill="#334155"/>
+        <rect x="252" y="180" width="9" height="30" rx="3" fill="#334155"/>
+        <path d="M232 140 q18-10 36 0 l4 48 h-44z" fill="#fff" stroke="#d1d9de"/>
+        <path d="M246 132 l4 14 l4 -14z" fill="var(--h1)"/>
+        <path d="M244 140 q-4 22 6 30 q10 -8 6 -30" fill="none" stroke="#475569" stroke-width="2"/>
+        <circle cx="250" cy="171" r="3" fill="#475569"/>
+        <g class="wave"><path d="M268 146 q14 -8 12 -28" stroke="#fff" stroke-width="9" stroke-linecap="round" fill="none"/><circle cx="280" cy="116" r="5" fill="#f1c7a1"/></g>
+        <path d="M233 146 q-8 18 -2 34" stroke="#fff" stroke-width="9" stroke-linecap="round" fill="none"/>
+        <circle cx="250" cy="120" r="14" fill="#f1c7a1"/>
+        <path d="M236 116 q14 -18 28 0 q-2 -14 -14 -14 q-12 0 -14 14z" fill="#3b2a20"/>
+        <circle cx="245" cy="121" r="1.6" fill="#222"/><circle cx="255" cy="121" r="1.6" fill="#222"/>
+        <path d="M245 127 q5 4 10 0" stroke="#a0522d" stroke-width="1.5" fill="none"/>
+      </g>
+    </svg>
+  </div>
+
+  <p class="label">الطبيب المناوب في <b>مركز أمراض الدم الوراثية (السكلر)</b></p>
+  <div class="chip" id="chip"><b>—</b><span></span></div>
+  <h1 class="name" id="name">—</h1>
+  <p class="tag" id="tag">جارٍ التحميل…</p>
+  <p class="meta" id="meta"></p>
+
+  <section class="today" id="today" aria-label="مناوبات اليوم"></section>
+
+  <section class="load" aria-label="عدد المرضى">
+    <div class="row"><span>ازدحام المرضى الآن</span><strong id="loadTxt">—</strong></div>
+    <div class="bar" id="bar"><i></i><i></i><i></i><i></i></div>
+  </section>
+
+  <button class="cta" id="open">أنا داخل المركز – حدّث المناوب</button>
+  <p class="note">التحديث متاح فقط لمن يتواجد فعلياً داخل مجمع السلمانية الطبي، ويُتحقق من ذلك عبر موقع جهازك.</p>
+</main>
+<footer>هذه صفحة تطوعية من ابتكارات مرضى السكلر، وليست لها علاقة بأي جهة رسمية.</footer>
+
+<div class="veil" id="veil" role="dialog" aria-modal="true" aria-labelledby="sh">
+  <div class="sheet">
+    <button class="x" id="close" aria-label="إغلاق">×</button>
+    <h2 id="sh">تحديث المناوبة</h2>
+    <div class="info" id="shiftInfo"></div>
+    <div class="status" id="geo"></div>
+    <div id="form" hidden>
+      <h3>الطبيب المناوب</h3>
+      <div class="grid" id="docs"></div>
+      <h3>عدد المرضى</h3>
+      <div class="grid" id="loads"></div>
+      <button class="send" id="send" disabled>إرسال</button>
+      <div class="status" id="res"></div>
+    </div>
+
+    <div class="admin">
+      <button class="link" id="admOpen">إدخال الطبيب للأدمن</button>
+      <div id="admLogin" hidden>
+        <input class="fld" id="pw" type="password" placeholder="كلمة المرور" autocomplete="off">
+        <button class="send dark" id="pwGo">دخول</button>
+        <div class="status" id="pwRes"></div>
+      </div>
+      <div id="admBox" hidden>
+        <h3>المناوبة</h3>
+        <select class="fld" id="aShift"></select>
+        <h3>اسم الطبيب</h3>
+        <input class="fld" id="aDoc" list="docList" placeholder="اختر أو اكتب اسم الطبيب">
+        <datalist id="docList"></datalist>
+        <label class="chk"><input type="checkbox" id="aHol"> اعتبر هذا اليوم إجازة رسمية</label>
+        <button class="send dark" id="aSave">حفظ واعتماد</button>
+        <button class="send ghost" id="aClear">إلغاء اعتماد الأدمن لهذه المناوبة</button>
+        <div class="status" id="aRes"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+{
+/* ===================== الإعدادات ===================== */
+const CONFIG = {
+  lat: 26.2160, lng: 50.5755,   // مركز مجمع السلمانية الطبي
+  radius: 700,                  // يغطي حدود مجمع السلمانية بالكامل
+  firebase: "https://scdbh-5ada5-default-rtdb.europe-west1.firebasedatabase.app",
+  adminHash: "a46868ba6df45fea8ec51207d8d557fe35f7e4fc1ebe3a23af5c35fca0903143",
+  loadWindowHrs: 3,
+  // إجازات رسمية ثابتة (MM-DD) – أضف الإجازات الدينية من لوحة الأدمن
+  holidays: ["01-01","05-01","12-16","12-17"]
+};
+const DOCTORS = ["سيد شرف المزعل","دكتور جعفر آل طوق","دكتور ممدوح","دكتور سيد رائد الموسوي","دكتور أحمد","دكتورة ضحى","دكتور معاذ","دكتور كمال","دكتور حسين فتحي","دكتور (ميدكل)"];
+const EXPECTED_DAY = "سيد شرف المزعل";   // النهار: السبت – الخميس (أيام العمل)
+const EXPECTED_N2  = "دكتور ممدوح";      // آخر ليل: كل أيام الأسبوع
+const SHIFTS = {
+  work:[ {k:"day",n:"نهار",t:"7 ص – 2 م",s:420,e:840}, {k:"n1",n:"أول ليل",t:"2 م – 10 م",s:840,e:1350}, {k:"n2",n:"آخر ليل",t:"10:30 م – 7 ص",s:1350,e:1860} ],
+  off:[  {k:"day",n:"نهار",t:"7 ص – 7 م",s:420,e:1140}, {k:"n1",n:"أول ليل",t:"7 م – 10:30 م",s:1140,e:1350}, {k:"n2",n:"آخر ليل",t:"10:30 م – 7 ص",s:1350,e:1860} ]
+};
+const LOADS = [
+  {k:0,t:"منخفض",s:"أقل من خمسة",h1:"#0f9d6b",h2:"#0b6b4a",g:"#7ef0c0",b1:"#052a1e",b2:"#0a4a35"},
+  {k:1,t:"متوسط",s:"أكثر من عشرة",h1:"#d4a800",h2:"#8a6d00",g:"#ffe680",b1:"#2e2400",b2:"#5c4800"},
+  {k:2,t:"مرتفع",s:"أكثر من ١٥",h1:"#ea6a12",h2:"#9a3f05",g:"#ffbb80",b1:"#2e1203",b2:"#6b2a06"},
+  {k:3,t:"مرتفع جداً",s:"أكثر من عشرين",h1:"#dc2626",h2:"#8b1010",g:"#ff9090",b1:"#2a0505",b2:"#6b0b0b"}
+];
+const DAYS = ["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
+
+const $ = id => document.getElementById(id);
+const root = document.documentElement;
+let palette = LOADS[0];
+
+/* ===================== التخزين ===================== */
+const LS = {get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+            set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const FB = CONFIG.firebase.replace(/\/$/,"");
+const db = {
+  async get(path,def){ if(!FB) return LS.get("sk:"+path,def);
+    const r=await fetch(`${FB}/${path}.json`); const d=await r.json(); return d==null?def:d; },
+  async put(path,val){ if(!FB){ LS.set("sk:"+path,val); return; }
+    const r=await fetch(`${FB}/${path}.json`,{method:"PUT",body:JSON.stringify(val)}); if(!r.ok) throw 0; },
+  async push(path,val){ if(!FB){ const o=LS.get("sk:"+path,{}); o[Date.now()+"_"+Math.random().toString(36).slice(2,6)]=val; LS.set("sk:"+path,o); return; }
+    const r=await fetch(`${FB}/${path}.json`,{method:"POST",body:JSON.stringify(val)}); if(!r.ok) throw 0; },
+  async del(path){ if(!FB){ try{localStorage.removeItem("sk:"+path)}catch(e){} return; }
+    await fetch(`${FB}/${path}.json`,{method:"DELETE"}); },
+  async count(path){ if(!FB) return Object.keys(LS.get("sk:"+path,{})).length;
+    const r=await fetch(`${FB}/${path}.json?shallow=true`); const d=await r.json(); return d?Object.keys(d).length:0; }
+};
+if(!FB) $("demo").hidden = false;
+
+/* ===================== الوقت والمناوبات (توقيت البحرين) ===================== */
+const bh = ms => new Date(ms + 3*3600e3);                    // البحرين UTC+3 بلا توقيت صيفي
+const ymd = d => d.toISOString().slice(0,10);
+let extraHol = {};                                           // إجازات أضافها الأدمن
+function isOff(dateStr){
+  const d = new Date(dateStr+"T00:00:00Z"), wd = d.getUTCDay();
+  return wd===5 || wd===6 || CONFIG.holidays.includes(dateStr.slice(5)) || !!extraHol[dateStr];
+}
+function isHoliday(dateStr){ return CONFIG.holidays.includes(dateStr.slice(5)) || !!extraHol[dateStr]; }
+function current(ms=Date.now()){
+  const b = bh(ms); let m = b.getUTCHours()*60 + b.getUTCMinutes();
+  if(m < 420){ b.setUTCDate(b.getUTCDate()-1); m += 1440; }  // قبل 7 ص = آخر ليل اليوم السابق
+  const day = ymd(b), list = SHIFTS[isOff(day)?"off":"work"];
+  const sh = list.find(s=>m>=s.s && m<s.e);
+  return {day, list, sh, id:`${day}_${sh.k}`};
+}
+function expected(day, k){
+  const wd = new Date(day+"T00:00:00Z").getUTCDay();
+  if(k==="n2") return EXPECTED_N2;
+  if(k==="day" && wd!==5 && !isHoliday(day)) return EXPECTED_DAY;
+  return null;
+}
+
+/* ===================== الحساب والعرض ===================== */
+function majority(votes, key){
+  const c={}, last={};
+  for(const v of votes){ if(v[key]==null) continue; c[v[key]]=(c[v[key]]||0)+1; last[v[key]]=Math.max(last[v[key]]||0,v.t); }
+  const ks=Object.keys(c); if(!ks.length) return null;
+  ks.sort((a,b)=>c[b]-c[a]||last[b]-last[a]);
+  return {val:ks[0], n:c[ks[0]], total:ks.reduce((s,k)=>s+c[k],0), at:last[ks[0]]};
+}
+const ago = t => { const m=Math.round((Date.now()-t)/60000); return m<1?"الآن":m<60?`منذ ${m} دقيقة`:`منذ ${Math.round(m/60)} ساعة`; };
+const esc = s => String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+let cur, adminMap={}, votesBy={}, shown="";
+function resolve(day,k){
+  const id=`${day}_${k}`;
+  if(adminMap[id]) return {name:adminMap[id].doctor, src:"adm"};
+  const mj = majority(votesBy[id]||[], "doctor");
+  if(mj) return {name:mj.val, src:"vote", n:mj.total, at:mj.at};
+  const ex = expected(day,k);
+  return ex ? {name:ex, src:"exp"} : {name:null, src:"none"};
+}
+async function refresh(){
+  try{
+    extraHol = await db.get("holidays",{});
+    cur = current();
+    const [adm, all] = await Promise.all([db.get("admin",{}), db.get(`votes/${cur.day}`,{})]);
+    adminMap = adm||{};
+    const prevDay = ymd(new Date(Date.parse(cur.day+"T00:00:00Z")-864e5));
+    const prev = await db.get(`votes/${prevDay}`,{});
+    votesBy = {};
+    for(const v of [...Object.values(all||{}),...Object.values(prev||{})]) (votesBy[v.shift] ||= []).push(v);
+  }catch(e){ $("tag").textContent="تعذّر الاتصال بالخادم"; return; }
+
+  const r = resolve(cur.day, cur.sh.k);
+  $("chip").innerHTML = `<b>${esc(cur.sh.n)}</b><span>${esc(cur.sh.t)}</span>`;
+  const txt = r.name || "لم يُحدَّد بعد", nm=$("name");
+  if(txt!==shown){ nm.textContent=txt; nm.classList.remove("swap"); void nm.offsetWidth; if(shown) nm.classList.add("swap"); shown=txt; }
+  const tag=$("tag");
+  tag.className = "tag " + ({adm:"adm",vote:"vote",exp:"exp",none:"exp"})[r.src];
+  tag.textContent = ({adm:"✔ معتمد من الإدارة", vote:"✔ أدخله المتواجدون في المركز", exp:"الطبيب المتوقع حسب الجدول – لم يُؤكَّد بعد", none:"كن أول من يحدّث المناوب من داخل المركز"})[r.src];
+  const dname = DAYS[new Date(cur.day+"T00:00:00Z").getUTCDay()];
+  $("meta").textContent = `${dname} · ${isOff(cur.day)?(isHoliday(cur.day)?"إجازة رسمية":"عطلة نهاية الأسبوع"):"يوم عمل"}` + (r.src==="vote"?` · ${r.n} تحديث · آخر تأكيد ${ago(r.at)}`:"");
+
+  $("today").innerHTML = cur.list.map(s=>{
+    const x = resolve(cur.day,s.k);
+    const lab = ({adm:"معتمد",vote:"مؤكَّد",exp:"متوقَّع",none:"—"})[x.src];
+    return `<div class="sh ${s.k===cur.sh.k?"now":""}"><div><b>${esc(s.n)}</b><span class="t">${esc(s.t)}</span></div>
+      <div><span class="d">${esc(x.name||"لم يُحدَّد")}</span><span class="s">${lab}</span></div></div>`;
+  }).join("");
+
+  const since = Date.now()-CONFIG.loadWindowHrs*3600e3;
+  const recent = Object.values(votesBy).flat().filter(v=>v.t>=since);
+  const l = majority(recent,"load"), lvl = l ? LOADS[+l.val] : null;
+  $("loadTxt").textContent = lvl ? `${lvl.t} · ${lvl.s}` : "غير معروف";
+  [...$("bar").children].forEach((i,k)=>i.classList.toggle("on", !!lvl && k<=lvl.k));
+  setTheme(lvl || LOADS[0]);
+}
+function setTheme(p){
+  palette=p;
+  for(const [k,v] of [["--h1",p.h1],["--h2",p.h2],["--glow",p.g],["--bg1",p.b1],["--bg2",p.b2]]) root.style.setProperty(k,v);
+}
+
+/* ===================== عداد الزوار اليومي ===================== */
+async function visits(){
+  const today = ymd(bh(Date.now()));                          // يتصفّر تلقائياً عند منتصف الليل بتوقيت البحرين
+  try{
+    if(LS.get("sk_seen","")!==today){ await db.push(`visits/${today}`,1); LS.set("sk_seen",today); }
+    $("visits").textContent = `👁 زوار اليوم: ${(await db.count(`visits/${today}`)).toLocaleString("ar")}`;
+  }catch(e){}
+}
+
+/* ===================== نوافذ المبنى ===================== */
+$("wins").innerHTML = Array.from({length:12},(_,i)=>`<rect class="win" style="animation-delay:${(i*.37)%3}s" x="${88+(i%4)*44}" y="${80+Math.floor(i/4)*24}" width="26" height="14" rx="2" fill="var(--h1)" opacity=".85"/>`).join("");
+
+/* ===================== خلفية كريات الدم ===================== */
+const cv=$("cells"), cx=cv.getContext("2d");
+let W,H,cells=[];
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+function resize(){
+  const dpr=Math.min(devicePixelRatio||1,2); W=innerWidth; H=innerHeight;
+  cv.width=W*dpr; cv.height=H*dpr; cx.setTransform(dpr,0,0,dpr,0,0);
+  const n=Math.round(Math.min(70,W*H/18000));
+  cells=Array.from({length:n},()=>({x:Math.random()*W,y:Math.random()*H,r:10+Math.random()*26,sickle:Math.random()<.55,
+    ph:Math.random()*6.28,sp:.25+Math.random()*.6,rot:Math.random()*6.28,vr:(Math.random()-.5)*.01,a:.18+Math.random()*.4,amp:12+Math.random()*30}));
+}
+const hexA=(h,a)=>{const n=parseInt(h.slice(1),16);return `rgba(${n>>16},${n>>8&255},${n&255},${a})`};
+function draw(t){
+  cx.clearRect(0,0,W,H);
+  for(const c of cells){
+    c.x-=c.sp; if(c.x<-60){c.x=W+60;c.y=Math.random()*H;}
+    const y=c.y+Math.sin(t/1400+c.ph+c.x/180)*c.amp; c.rot+=c.vr;
+    cx.save(); cx.translate(c.x,y); cx.rotate(c.rot);
+    const g=cx.createRadialGradient(-c.r*.3,-c.r*.3,c.r*.1,0,0,c.r);
+    g.addColorStop(0,hexA(palette.g,c.a)); g.addColorStop(1,hexA(palette.h1,c.a*.9));
+    cx.fillStyle=g; cx.beginPath();
+    if(c.sickle){ cx.arc(0,0,c.r,Math.PI*.15,Math.PI*1.85,false); cx.arc(c.r*.45,0,c.r*.78,Math.PI*1.75,Math.PI*.25,true); }
+    else cx.ellipse(0,0,c.r,c.r*.92,0,0,6.283);
+    cx.closePath(); cx.fill();
+    if(!c.sickle){ cx.fillStyle=hexA(palette.b1,c.a*.5); cx.beginPath(); cx.ellipse(0,0,c.r*.42,c.r*.38,0,0,6.283); cx.fill(); }
+    cx.restore();
+  }
+  if(!reduce) requestAnimationFrame(draw);
+}
+addEventListener("resize",resize); resize(); requestAnimationFrame(draw);
+
+/* ===================== نموذج المتواجدين ===================== */
+let pick={doctor:null,load:null}, fix=null, sheetShift=null;
+$("docs").innerHTML = DOCTORS.map((d,i)=>`<button class="opt" data-d="${i}" aria-pressed="false">${esc(d)}</button>`).join("");
+$("loads").innerHTML = LOADS.map(l=>`<button class="opt" data-l="${l.k}" aria-pressed="false">${l.t}<small>${l.s}</small></button>`).join("");
+$("docList").innerHTML = DOCTORS.map(d=>`<option value="${esc(d)}">`).join("");
+$("docs").onclick=e=>{const b=e.target.closest("[data-d]");if(!b)return;pick.doctor=DOCTORS[+b.dataset.d];mark("docs",b)};
+$("loads").onclick=e=>{const b=e.target.closest("[data-l]");if(!b)return;pick.load=+b.dataset.l;mark("loads",b)};
+function mark(g,b){[...$(g).children].forEach(x=>x.setAttribute("aria-pressed",x===b));$("send").disabled=!(pick.doctor&&pick.load!=null)}
+
+function dist(a,b,c,d){const R=6371e3,r=x=>x*Math.PI/180,dl=r(c-a),dn=r(d-b);
+  const h=Math.sin(dl/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(h))}
+function checkGeo(){
+  const g=$("geo"); $("form").hidden=true; g.className="status";
+  g.innerHTML='<span class="spin"></span> جارٍ التحقق من موقعك…';
+  if(!navigator.geolocation){g.className="status err";g.textContent="جهازك لا يدعم تحديد الموقع.";return}
+  navigator.geolocation.getCurrentPosition(p=>{
+    const m=dist(p.coords.latitude,p.coords.longitude,CONFIG.lat,CONFIG.lng), acc=p.coords.accuracy||0;
+    if(m-Math.min(acc,150)<=CONFIG.radius){
+      fix={lat:+p.coords.latitude.toFixed(5),lng:+p.coords.longitude.toFixed(5),acc:Math.round(acc)};
+      g.className="status ok"; g.textContent="✓ تم التأكد أنك داخل مجمع السلمانية"; $("form").hidden=false;
+    }else{ g.className="status err"; g.textContent=`أنت على بعد ${m>1000?(m/1000).toFixed(1)+" كم":Math.round(m)+" م"} من مجمع السلمانية. التحديث متاح فقط من داخل المجمع.`; }
+  },err=>{ g.className="status err"; g.textContent=err.code===1?"يجب السماح بالوصول إلى الموقع للتحقق من تواجدك في المركز.":"تعذّر تحديد موقعك، حاول مرة أخرى."; },
+  {enableHighAccuracy:true,timeout:15000,maximumAge:0});
+}
+$("open").onclick=()=>{
+  cur=current(); sheetShift=cur;
+  $("shiftInfo").innerHTML=`ستحدد طبيب نوبة <b>${esc(cur.sh.n)}</b> (${esc(cur.sh.t)})`;
+  $("res").textContent=""; $("veil").classList.add("open"); checkGeo(); fillAdminShifts();
+};
+const closeSheet=()=>$("veil").classList.remove("open");
+$("close").onclick=closeSheet;
+$("veil").onclick=e=>{if(e.target.id==="veil")closeSheet()};
+addEventListener("keydown",e=>{if(e.key==="Escape")closeSheet()});
+
+$("send").onclick=async()=>{
+  const r=$("res"), s=sheetShift;
+  if(LS.get("sk_voted","")===s.id){r.className="status err";r.textContent="سبق أن أرسلت تحديثاً لهذه المناوبة من هذا الجهاز.";return}
+  $("send").disabled=true; r.className="status"; r.innerHTML='<span class="spin"></span> جارٍ الإرسال…';
+  try{
+    await db.push(`votes/${s.day}`,{shift:s.id,doctor:pick.doctor,load:pick.load,t:Date.now(),...fix});
+    LS.set("sk_voted",s.id); r.className="status ok"; r.textContent="شكراً! تم تحديث المناوبة.";
+    await refresh(); setTimeout(closeSheet,1200);
+  }catch(e){r.className="status err";r.textContent="تعذّر الإرسال، حاول مرة أخرى.";$("send").disabled=false}
+};
+
+/* ===================== لوحة الأدمن ===================== */
+async function sha(s){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}
+function fillAdminShifts(){
+  const days=[cur.day, ymd(new Date(Date.parse(cur.day+"T00:00:00Z")+864e5))];
+  $("aShift").innerHTML=days.flatMap((d,i)=>SHIFTS[isOff(d)?"off":"work"].map(s=>
+    `<option value="${d}_${s.k}" ${d===cur.day&&s.k===cur.sh.k?"selected":""}>${i?"غداً":"اليوم"} · ${s.n} · ${s.t}</option>`)).join("");
+  $("aHol").checked=!!extraHol[cur.day];
+}
+$("admOpen").onclick=()=>{ $("admLogin").hidden = !$("admLogin").hidden || !$("admBox").hidden; if(!$("admLogin").hidden) $("pw").focus(); };
+$("pwGo").onclick=async()=>{
+  const ok = (await sha($("pw").value.trim()))===CONFIG.adminHash;
+  if(ok){ $("admLogin").hidden=true; $("admBox").hidden=false; fillAdminShifts(); }
+  else { $("pwRes").className="status err"; $("pwRes").textContent="كلمة المرور غير صحيحة"; }
+};
+$("pw").onkeydown=e=>{if(e.key==="Enter")$("pwGo").click()};
+$("aShift").onchange=()=>{ $("aHol").checked=!!extraHol[$("aShift").value.split("_")[0]]; };
+$("aSave").onclick=async()=>{
+  const id=$("aShift").value, day=id.split("_")[0], name=$("aDoc").value.trim(), r=$("aRes");
+  try{
+    if($("aHol").checked!==!!extraHol[day]){ if($("aHol").checked) await db.put(`holidays/${day}`,true); else await db.del(`holidays/${day}`); }
+    if(name){ adminMap[id]={doctor:name.slice(0,60),t:Date.now()}; await db.put("admin",adminMap); }
+    r.className="status ok"; r.textContent="تم الحفظ"; await refresh(); fillAdminShifts();
+  }catch(e){ r.className="status err"; r.textContent="تعذّر الحفظ"; }
+};
+$("aClear").onclick=async()=>{
+  const id=$("aShift").value; delete adminMap[id];
+  try{ await db.put("admin",adminMap); $("aRes").className="status ok"; $("aRes").textContent="أُلغي الاعتماد، يظهر الآن اختيار المتواجدين أو المتوقع"; await refresh(); }catch(e){}
+};
+
+refresh(); visits(); setInterval(refresh,30000); setInterval(visits,60000);
+}
+</script>
+</body>
+</html>
