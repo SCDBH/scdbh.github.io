@@ -301,7 +301,7 @@ async function refresh(){
   if(txt!==shown){ nm.textContent=txt; nm.classList.remove("swap"); void nm.offsetWidth; if(shown) nm.classList.add("swap"); shown=txt; }
   const tag=$("tag");
   tag.className = "tag " + ({adm:"adm",vote:"vote",exp:"exp",none:"exp"})[r.src];
-  tag.textContent = ({adm:"✔ معتمد من الإدارة", vote:"✔ أدخله المتواجدون في المركز", exp:"الطبيب المتوقع حسب الجدول – لم يُؤكَّد بعد", none:"كن أول من يحدّث المناوب من داخل المركز"})[r.src];
+  tag.textContent = ({adm:"✔ معتمد", vote:"✔ أدخله المتواجدون في المركز", exp:"الطبيب المتوقع حسب الجدول – لم يُؤكَّد بعد", none:"كن أول من يحدّث المناوب من داخل المركز"})[r.src];
   const dname = DAYS[new Date(cur.day+"T00:00:00Z").getUTCDay()];
   $("meta").textContent = `${dname} · ${isOff(cur.day)?(isHoliday(cur.day)?"إجازة رسمية":"عطلة نهاية الأسبوع"):"يوم عمل"}` + (r.src==="vote"?` · ${r.n} تحديث · آخر تأكيد ${ago(r.at)}`:"");
 
