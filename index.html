@@ -86,7 +86,7 @@ footer{position:relative;z-index:1;text-align:center;font-size:13px;opacity:.75;
 .opt[aria-pressed=true]{border-color:var(--h1);background:color-mix(in srgb,var(--h1) 14%,#fff);font-weight:600}
 .opt small{display:block;font-size:13px;color:#666}
 .send{width:100%;margin-top:18px;font:600 17px "Readex Pro",sans-serif;border:0;border-radius:14px;min-height:52px;background:var(--h1);color:#fff;cursor:pointer}
-.send.dark{background:#111}.send.ghost{background:#eee;color:#111;margin-top:8px}
+.send.dark{background:#111}.admin[hidden]{display:none}.send.ghost{background:#eee;color:#111;margin-top:8px}
 .send:disabled{opacity:.4;cursor:not-allowed}
 .status{margin-top:12px;font-size:15px;line-height:1.6}
 .status.err{color:#b91c1c}.status.ok{color:#15803d}
@@ -167,34 +167,25 @@ footer{position:relative;z-index:1;text-align:center;font-size:13px;opacity:.75;
   <div class="sheet">
     <button class="x" id="close" aria-label="إغلاق">×</button>
     <h2 id="sh">تحديث المناوبة</h2>
-    <div class="info" id="shiftInfo"></div>
     <div class="status" id="geo"></div>
     <div id="form" hidden>
+      <h3>النوبة</h3>
+      <div class="grid" id="shifts"></div>
       <h3>الطبيب المناوب</h3>
       <div class="grid" id="docs"></div>
       <h3>عدد المرضى</h3>
       <div class="grid" id="loads"></div>
+      <label class="chk" id="holRow" hidden><input type="checkbox" id="aHol"> اعتبر اليوم إجازة رسمية</label>
       <button class="send" id="send" disabled>إرسال</button>
+      <button class="send ghost" id="aClear" hidden>إلغاء اعتماد الأدمن لهذه النوبة</button>
       <div class="status" id="res"></div>
     </div>
-
-    <div class="admin">
+    <div class="admin" id="admArea">
       <button class="link" id="admOpen">إدخال الطبيب للأدمن</button>
       <div id="admLogin" hidden>
         <input class="fld" id="pw" type="password" placeholder="كلمة المرور" autocomplete="off">
         <button class="send dark" id="pwGo">دخول</button>
         <div class="status" id="pwRes"></div>
-      </div>
-      <div id="admBox" hidden>
-        <h3>المناوبة</h3>
-        <select class="fld" id="aShift"></select>
-        <h3>اسم الطبيب</h3>
-        <input class="fld" id="aDoc" list="docList" placeholder="اختر أو اكتب اسم الطبيب">
-        <datalist id="docList"></datalist>
-        <label class="chk"><input type="checkbox" id="aHol"> اعتبر هذا اليوم إجازة رسمية</label>
-        <button class="send dark" id="aSave">حفظ واعتماد</button>
-        <button class="send ghost" id="aClear">إلغاء اعتماد الأدمن لهذه المناوبة</button>
-        <div class="status" id="aRes"></div>
       </div>
     </div>
   </div>
@@ -376,14 +367,36 @@ function draw(t){
 }
 addEventListener("resize",resize); resize(); requestAnimationFrame(draw);
 
-/* ===================== نموذج المتواجدين ===================== */
-let pick={doctor:null,load:null}, fix=null, sheetShift=null;
+/* ===================== نموذج الإدخال (للمتواجدين وللأدمن) ===================== */
+let pick={shift:null,doctor:null,load:null}, fix=null, isAdmin=false, avail=[];
 $("docs").innerHTML = DOCTORS.map((d,i)=>`<button class="opt" data-d="${i}" aria-pressed="false">${esc(d)}</button>`).join("");
 $("loads").innerHTML = LOADS.map(l=>`<button class="opt" data-l="${l.k}" aria-pressed="false">${l.t}<small>${l.s}</small></button>`).join("");
-$("docList").innerHTML = DOCTORS.map(d=>`<option value="${esc(d)}">`).join("");
 $("docs").onclick=e=>{const b=e.target.closest("[data-d]");if(!b)return;pick.doctor=DOCTORS[+b.dataset.d];mark("docs",b)};
 $("loads").onclick=e=>{const b=e.target.closest("[data-l]");if(!b)return;pick.load=+b.dataset.l;mark("loads",b)};
-function mark(g,b){[...$(g).children].forEach(x=>x.setAttribute("aria-pressed",x===b));$("send").disabled=!(pick.doctor&&pick.load!=null)}
+$("shifts").onclick=e=>{const b=e.target.closest("[data-s]");if(!b)return;pick.shift=avail[+b.dataset.s];mark("shifts",b)};
+function mark(g,b){[...$(g).children].forEach(x=>x.setAttribute("aria-pressed",x===b));validate()}
+function validate(){$("send").disabled=!(pick.shift&&pick.doctor&&pick.load!=null)}
+
+// النوبة الحالية + النوبة التالية إذا بقي على بدايتها ساعة أو أقل
+function startMs(day,s){return Date.parse(day+"T00:00:00Z")-3*3600e3+s*60e3}
+function availableShifts(){
+  const c=current(), out=[{day:c.day,sh:c.sh,id:c.id}];
+  const i=c.list.indexOf(c.sh);
+  let nd=c.day, ns=c.list[i+1];
+  if(!ns){ nd=ymd(new Date(Date.parse(c.day+"T00:00:00Z")+864e5)); ns=SHIFTS[isOff(nd)?"off":"work"][0]; }
+  if(startMs(nd,ns.s)-Date.now()<=3600e3) out.push({day:nd,sh:ns,id:`${nd}_${ns.k}`});
+  return out;
+}
+function buildShifts(){
+  avail=availableShifts();
+  $("shifts").innerHTML=avail.map((s,i)=>`<button class="opt" data-s="${i}" aria-pressed="${i===0}">${esc(s.sh.n)}</button>`).join("");
+  pick.shift=avail[0]; validate();
+}
+function resetForm(){
+  pick={shift:null,doctor:null,load:null};
+  for(const g of ["docs","loads"]) [...$(g).children].forEach(x=>x.setAttribute("aria-pressed","false"));
+  buildShifts(); $("res").textContent="";
+}
 
 function dist(a,b,c,d){const R=6371e3,r=x=>x*Math.PI/180,dl=r(c-a),dn=r(d-b);
   const h=Math.sin(dl/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(h))}
@@ -392,62 +405,57 @@ function checkGeo(){
   g.innerHTML='<span class="spin"></span> جارٍ التحقق من موقعك…';
   if(!navigator.geolocation){g.className="status err";g.textContent="جهازك لا يدعم تحديد الموقع.";return}
   navigator.geolocation.getCurrentPosition(p=>{
+    if(isAdmin) return;
     const m=dist(p.coords.latitude,p.coords.longitude,CONFIG.lat,CONFIG.lng), acc=p.coords.accuracy||0;
     if(m-Math.min(acc,150)<=CONFIG.radius){
       fix={lat:+p.coords.latitude.toFixed(5),lng:+p.coords.longitude.toFixed(5),acc:Math.round(acc)};
       g.className="status ok"; g.textContent="✓ تم التأكد أنك داخل مجمع السلمانية"; $("form").hidden=false;
     }else{ g.className="status err"; g.textContent=`أنت على بعد ${m>1000?(m/1000).toFixed(1)+" كم":Math.round(m)+" م"} من مجمع السلمانية. التحديث متاح فقط من داخل المجمع.`; }
-  },err=>{ g.className="status err"; g.textContent=err.code===1?"يجب السماح بالوصول إلى الموقع للتحقق من تواجدك في المركز.":"تعذّر تحديد موقعك، حاول مرة أخرى."; },
+  },err=>{ if(isAdmin) return; g.className="status err"; g.textContent=err.code===1?"يجب السماح بالوصول إلى الموقع للتحقق من تواجدك في المركز.":"تعذّر تحديد موقعك، حاول مرة أخرى."; },
   {enableHighAccuracy:true,timeout:15000,maximumAge:0});
 }
-$("open").onclick=()=>{
-  cur=current(); sheetShift=cur;
-  $("shiftInfo").innerHTML=`ستحدد طبيب نوبة <b>${esc(cur.sh.n)}</b> (${esc(cur.sh.t)})`;
-  $("res").textContent=""; $("veil").classList.add("open"); checkGeo(); fillAdminShifts();
-};
+$("open").onclick=()=>{ resetForm(); $("veil").classList.add("open"); if(isAdmin) adminMode(); else checkGeo(); };
 const closeSheet=()=>$("veil").classList.remove("open");
 $("close").onclick=closeSheet;
 $("veil").onclick=e=>{if(e.target.id==="veil")closeSheet()};
 addEventListener("keydown",e=>{if(e.key==="Escape")closeSheet()});
 
 $("send").onclick=async()=>{
-  const r=$("res"), s=sheetShift;
-  if(LS.get("sk_voted","")===s.id){r.className="status err";r.textContent="سبق أن أرسلت تحديثاً لهذه المناوبة من هذا الجهاز.";return}
+  const r=$("res"), s=pick.shift, voted=LS.get("sk_voted2",{});
+  if(!isAdmin && voted[s.id]){r.className="status err";r.textContent="سبق أن أرسلت تحديثاً لهذه النوبة من هذا الجهاز.";return}
   $("send").disabled=true; r.className="status"; r.innerHTML='<span class="spin"></span> جارٍ الإرسال…';
   try{
-    await db.push(`votes/${s.day}`,{shift:s.id,doctor:pick.doctor,load:pick.load,t:Date.now(),...fix});
-    LS.set("sk_voted",s.id); r.className="status ok"; r.textContent="شكراً! تم تحديث المناوبة.";
+    if(isAdmin){
+      const day=s.day;
+      if($("aHol").checked!==!!extraHol[day]){ if($("aHol").checked) await db.put(`holidays/${day}`,true); else await db.del(`holidays/${day}`); }
+      adminMap[s.id]={doctor:pick.doctor,t:Date.now()}; await db.put("admin",adminMap);
+      await db.push(`votes/${day}`,{shift:s.id,load:pick.load,t:Date.now(),admin:true});
+    }else{
+      await db.push(`votes/${s.day}`,{shift:s.id,doctor:pick.doctor,load:pick.load,t:Date.now(),...fix});
+      voted[s.id]=1; LS.set("sk_voted2",voted);
+    }
+    r.className="status ok"; r.textContent=isAdmin?"تم الحفظ والاعتماد.":"شكراً! تم تحديث المناوبة.";
     await refresh(); setTimeout(closeSheet,1200);
-  }catch(e){r.className="status err";r.textContent="تعذّر الإرسال، حاول مرة أخرى.";$("send").disabled=false}
+  }catch(e){r.className="status err";r.textContent="تعذّر الإرسال، حاول مرة أخرى.";validate()}
 };
 
-/* ===================== لوحة الأدمن ===================== */
+/* ===================== الأدمن ===================== */
 async function sha(s){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}
-function fillAdminShifts(){
-  const days=[cur.day, ymd(new Date(Date.parse(cur.day+"T00:00:00Z")+864e5))];
-  $("aShift").innerHTML=days.flatMap((d,i)=>SHIFTS[isOff(d)?"off":"work"].map(s=>
-    `<option value="${d}_${s.k}" ${d===cur.day&&s.k===cur.sh.k?"selected":""}>${i?"غداً":"اليوم"} · ${s.n} · ${s.t}</option>`)).join("");
-  $("aHol").checked=!!extraHol[cur.day];
+function adminMode(){
+  $("geo").className="status ok"; $("geo").textContent="وضع الأدمن – لا يلزم التواجد في المركز";
+  $("form").hidden=false; $("holRow").hidden=false; $("aClear").hidden=false; $("admArea").hidden=true;
+  $("send").textContent="حفظ واعتماد"; $("send").classList.add("dark");
+  $("aHol").checked=!!extraHol[current().day];
 }
-$("admOpen").onclick=()=>{ $("admLogin").hidden = !$("admLogin").hidden || !$("admBox").hidden; if(!$("admLogin").hidden) $("pw").focus(); };
+$("admOpen").onclick=()=>{ $("admLogin").hidden=!$("admLogin").hidden; if(!$("admLogin").hidden) $("pw").focus(); };
 $("pwGo").onclick=async()=>{
-  const ok = (await sha($("pw").value.trim()))===CONFIG.adminHash;
-  if(ok){ $("admLogin").hidden=true; $("admBox").hidden=false; fillAdminShifts(); }
+  if((await sha($("pw").value.trim()))===CONFIG.adminHash){ isAdmin=true; $("admLogin").hidden=true; adminMode(); }
   else { $("pwRes").className="status err"; $("pwRes").textContent="كلمة المرور غير صحيحة"; }
 };
 $("pw").onkeydown=e=>{if(e.key==="Enter")$("pwGo").click()};
-$("aShift").onchange=()=>{ $("aHol").checked=!!extraHol[$("aShift").value.split("_")[0]]; };
-$("aSave").onclick=async()=>{
-  const id=$("aShift").value, day=id.split("_")[0], name=$("aDoc").value.trim(), r=$("aRes");
-  try{
-    if($("aHol").checked!==!!extraHol[day]){ if($("aHol").checked) await db.put(`holidays/${day}`,true); else await db.del(`holidays/${day}`); }
-    if(name){ adminMap[id]={doctor:name.slice(0,60),t:Date.now()}; await db.put("admin",adminMap); }
-    r.className="status ok"; r.textContent="تم الحفظ"; await refresh(); fillAdminShifts();
-  }catch(e){ r.className="status err"; r.textContent="تعذّر الحفظ"; }
-};
 $("aClear").onclick=async()=>{
-  const id=$("aShift").value; delete adminMap[id];
-  try{ await db.put("admin",adminMap); $("aRes").className="status ok"; $("aRes").textContent="أُلغي الاعتماد، يظهر الآن اختيار المتواجدين أو المتوقع"; await refresh(); }catch(e){}
+  const id=pick.shift.id; delete adminMap[id];
+  try{ await db.put("admin",adminMap); $("res").className="status ok"; $("res").textContent="أُلغي الاعتماد لهذه النوبة"; await refresh(); }catch(e){}
 };
 
 refresh(); visits(); setInterval(refresh,30000); setInterval(visits,60000);
