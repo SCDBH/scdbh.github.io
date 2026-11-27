@@ -302,8 +302,11 @@ async function refresh(){
   const tag=$("tag");
   tag.className = "tag " + ({adm:"adm",vote:"vote",exp:"exp",none:"exp"})[r.src];
   tag.textContent = ({adm:"✔ معتمد", vote:"✔ أدخله المتواجدون في المركز", exp:"الطبيب المتوقع حسب الجدول – لم يُؤكَّد بعد", none:"كن أول من يحدّث المناوب من داخل المركز"})[r.src];
-  const dname = DAYS[new Date(cur.day+"T00:00:00Z").getUTCDay()];
-  $("meta").textContent = `${dname} · ${isOff(cur.day)?(isHoliday(cur.day)?"إجازة رسمية":"عطلة نهاية الأسبوع"):"يوم عمل"}` + (r.src==="vote"?` · ${r.n} تحديث · آخر تأكيد ${ago(r.at)}`:"");
+  const realDay = ymd(bh(Date.now())), dname = DAYS[new Date(realDay+"T00:00:00Z").getUTCDay()];
+  const shiftDayName = DAYS[new Date(cur.day+"T00:00:00Z").getUTCDay()];
+  $("meta").textContent = (realDay===cur.day
+      ? `${dname} · ${isOff(cur.day)?(isHoliday(cur.day)?"إجازة رسمية":"عطلة نهاية الأسبوع"):"يوم عمل"}`
+      : `${dname} · نوبة آخر ليل بدأت مساء ${shiftDayName}`) + (r.src==="vote"?` · ${r.n} تحديث · آخر تأكيد ${ago(r.at)}`:"");
 
   $("today").innerHTML = cur.list.map(s=>{
     const x = resolve(cur.day,s.k);
