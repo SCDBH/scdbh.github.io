@@ -290,9 +290,10 @@ async function refresh(){
     const [adm, all] = await Promise.all([db.get("admin",{}), db.get(`votes/${cur.day}`,{})]);
     adminMap = adm||{};
     const prevDay = ymd(new Date(Date.parse(cur.day+"T00:00:00Z")-864e5));
-    const prev = await db.get(`votes/${prevDay}`,{});
+    const nextDay = ymd(new Date(Date.parse(cur.day+"T00:00:00Z")+864e5));
+    const [prev,next] = await Promise.all([db.get(`votes/${prevDay}`,{}), db.get(`votes/${nextDay}`,{})]);
     votesBy = {};
-    for(const v of [...Object.values(all||{}),...Object.values(prev||{})]) (votesBy[v.shift] ||= []).push(v);
+    for(const v of [...Object.values(all||{}),...Object.values(prev||{}),...Object.values(next||{})]) (votesBy[v.shift] ||= []).push(v);
   }catch(e){ $("tag").textContent="تعذّر الاتصال بالخادم"; return; }
 
   const r = resolve(cur.day, cur.sh.k);
@@ -304,14 +305,18 @@ async function refresh(){
   tag.textContent = ({adm:"✔ معتمد", vote:"✔ أدخله المتواجدون في المركز", exp:"الطبيب المتوقع حسب الجدول – لم يُؤكَّد بعد", none:"كن أول من يحدّث المناوب من داخل المركز"})[r.src];
   const realDay = ymd(bh(Date.now())), dname = DAYS[new Date(realDay+"T00:00:00Z").getUTCDay()];
   const shiftDayName = DAYS[new Date(cur.day+"T00:00:00Z").getUTCDay()];
-  $("meta").textContent = (realDay===cur.day
-      ? `${dname} · ${isOff(cur.day)?(isHoliday(cur.day)?"إجازة رسمية":"عطلة نهاية الأسبوع"):"يوم عمل"}`
-      : `${dname} · نوبة آخر ليل بدأت مساء ${shiftDayName}`) + (r.src==="vote"?` · ${r.n} تحديث · آخر تأكيد ${ago(r.at)}`:"");
+  $("meta").textContent = `${dname} · ${isOff(realDay)?"إجازة رسمية – دوام الإجازات":"يوم عمل"}` + (realDay!==cur.day?` · نوبة آخر ليل مستمرة حتى 7 ص`:"") + (r.src==="vote"?` · ${r.n} تحديث · آخر تأكيد ${ago(r.at)}`:"");
 
-  $("today").innerHTML = cur.list.map(s=>{
-    const x = resolve(cur.day,s.k);
+  // بعد منتصف الليل: نعرض شبكة اليوم الجديد، مع نوبة آخر ليل الجارية في أولها
+  let rows = cur.list.map(s=>({day:cur.day,s,now:s.k===cur.sh.k,t:s.t}));
+  if(realDay!==cur.day){
+    const rl = SHIFTS[isOff(realDay)?"off":"work"];
+    rows = [{day:cur.day,s:cur.sh,now:true,t:"حتى 7 ص"}, ...rl.filter(s=>s.k!=="n2").map(s=>({day:realDay,s,now:false,t:s.t}))];
+  }
+  $("today").innerHTML = rows.map(({day,s,now,t})=>{
+    const x = resolve(day,s.k);
     const lab = ({adm:"معتمد",vote:"مؤكَّد",exp:"متوقَّع",none:"—"})[x.src];
-    return `<div class="sh ${s.k===cur.sh.k?"now":""}"><div><b>${esc(s.n)}</b><span class="t">${esc(s.t)}</span></div>
+    return `<div class="sh ${now?"now":""}"><div><b>${esc(s.n)}</b><span class="t">${esc(t)}</span></div>
       <div><span class="d">${esc(x.name||"لم يُحدَّد")}</span><span class="s">${lab}</span></div></div>`;
   }).join("");
 
@@ -429,8 +434,8 @@ $("send").onclick=async()=>{
   $("send").disabled=true; r.className="status"; r.innerHTML='<span class="spin"></span> جارٍ الإرسال…';
   try{
     if(isAdmin){
-      const day=s.day;
-      if($("aHol").checked!==!!extraHol[day]){ if($("aHol").checked) await db.put(`holidays/${day}`,true); else await db.del(`holidays/${day}`); }
+      const hd=ymd(bh(Date.now())), day=s.day;
+      if($("aHol").checked!==!!extraHol[hd]){ if($("aHol").checked) await db.put(`holidays/${hd}`,true); else await db.del(`holidays/${hd}`); }
       adminMap[s.id]={doctor:pick.doctor,t:Date.now()}; await db.put("admin",adminMap);
       await db.push(`votes/${day}`,{shift:s.id,doctor:pick.doctor,load:pick.load,t:Date.now(),admin:true});
     }else{
@@ -448,7 +453,7 @@ function adminMode(){
   $("geo").className="status ok"; $("geo").textContent="وضع الأدمن – لا يلزم التواجد في المركز";
   $("form").hidden=false; $("holRow").hidden=false; $("aClear").hidden=false; $("admArea").hidden=true;
   $("send").textContent="حفظ واعتماد"; $("send").classList.add("dark");
-  $("aHol").checked=!!extraHol[current().day];
+  $("aHol").checked=!!extraHol[ymd(bh(Date.now()))];
 }
 $("admOpen").onclick=()=>{ $("admLogin").hidden=!$("admLogin").hidden; if(!$("admLogin").hidden) $("pw").focus(); };
 $("pwGo").onclick=async()=>{
