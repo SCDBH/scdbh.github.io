@@ -69,12 +69,12 @@ main{position:relative;z-index:1;display:flex;flex-direction:column;align-items:
 .cta:hover{transform:translateY(-2px)}
 button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--glow);outline-offset:3px}
 .note{font-size:13px;opacity:.7;margin-top:10px;max-width:520px}
-.tip{margin:14px auto 0;width:min(640px,94vw);background:rgba(255,255,255,.94);color:#14201b;border-radius:18px;padding:16px 18px 14px;text-align:start;box-shadow:0 10px 30px rgba(0,0,0,.2)}
-.tip .hd{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;color:var(--h2);font-weight:600}
-.tip h4{margin:8px 0 4px;font-size:18px;color:var(--h2)}
-.tip p{margin:0;font-size:16px;line-height:1.7}
-.tip .nx{border:0;background:color-mix(in srgb,var(--h1) 14%,#fff);color:var(--h2);font:600 14px "Readex Pro",sans-serif;border-radius:999px;padding:8px 14px;min-height:40px;cursor:pointer}
-.tip small{display:block;margin-top:10px;font-size:12px;color:#5b6b64}
+.tip{margin:14px auto 0;width:min(640px,94vw);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);color:inherit;border-radius:18px;padding:14px 18px 12px;text-align:start;backdrop-filter:blur(8px)}
+.tip .hd{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;opacity:.8}
+.tip h4{margin:8px 0 4px;font-size:17px;font-weight:600}
+.tip p{margin:0;font-size:15px;line-height:1.7;opacity:.9}
+.tip .nx{border:1px solid rgba(255,255,255,.3);background:transparent;color:inherit;font:600 14px "Readex Pro",sans-serif;border-radius:999px;padding:8px 14px;min-height:40px;cursor:pointer}
+.tip small{display:block;margin-top:10px;font-size:12px;opacity:.6}
 .tip.fade{animation:tf .5s ease both}@keyframes tf{from{opacity:0;transform:translateY(6px)}}
 footer{position:relative;z-index:1;text-align:center;font-size:13px;opacity:.75;padding:18px max(4vw,14px) 26px;border-top:1px solid rgba(255,255,255,.15);max-width:640px;margin:0 auto;text-wrap:balance}
 @media(max-width:560px){.today{grid-template-columns:1fr}.sh{display:flex;justify-content:space-between;align-items:center;gap:8px;text-align:start}.sh .d{margin:0;text-align:end}}
@@ -166,12 +166,12 @@ footer{position:relative;z-index:1;text-align:center;font-size:13px;opacity:.75;
   </section>
 
   <section class="tip" id="tip" aria-live="polite">
-    <div class="hd"><span>💡 نصيحة لمرضى السكلر</span><button class="nx" id="tipNext">نصيحة أخرى</button></div>
+    <div class="hd"><span>نصيحة لمرضى السكلر</span><button class="nx" id="tipNext">نصيحة أخرى</button></div>
     <h4 id="tipT"></h4><p id="tipB"></p>
     <small>للتوعية فقط، ولا تغني عن استشارة طبيبك.</small>
   </section>
 
-  <button class="cta" id="open">أنا داخل المركز – حدّث المناوب</button>
+  <button class="cta" id="open">أنا داخل المبنى – حدّث الدكتور المناوب</button>
   <p class="note">التحديث متاح فقط لمن يتواجد فعلياً داخل مجمع السلمانية الطبي، ويُتحقق من ذلك عبر موقع جهازك.</p>
 </main>
 <footer>هذه صفحة تطوعية من ابتكارات مرضى السكلر، وليست لها علاقة بأي جهة رسمية.</footer>
