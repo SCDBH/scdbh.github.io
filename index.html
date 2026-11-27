@@ -69,6 +69,13 @@ main{position:relative;z-index:1;display:flex;flex-direction:column;align-items:
 .cta:hover{transform:translateY(-2px)}
 button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--glow);outline-offset:3px}
 .note{font-size:13px;opacity:.7;margin-top:10px;max-width:520px}
+.tip{margin:14px auto 0;width:min(640px,94vw);background:rgba(255,255,255,.94);color:#14201b;border-radius:18px;padding:16px 18px 14px;text-align:start;box-shadow:0 10px 30px rgba(0,0,0,.2)}
+.tip .hd{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;color:var(--h2);font-weight:600}
+.tip h4{margin:8px 0 4px;font-size:18px;color:var(--h2)}
+.tip p{margin:0;font-size:16px;line-height:1.7}
+.tip .nx{border:0;background:color-mix(in srgb,var(--h1) 14%,#fff);color:var(--h2);font:600 14px "Readex Pro",sans-serif;border-radius:999px;padding:8px 14px;min-height:40px;cursor:pointer}
+.tip small{display:block;margin-top:10px;font-size:12px;color:#5b6b64}
+.tip.fade{animation:tf .5s ease both}@keyframes tf{from{opacity:0;transform:translateY(6px)}}
 footer{position:relative;z-index:1;text-align:center;font-size:13px;opacity:.75;padding:18px max(4vw,14px) 26px;border-top:1px solid rgba(255,255,255,.15);max-width:640px;margin:0 auto;text-wrap:balance}
 @media(max-width:560px){.today{grid-template-columns:1fr}.sh{display:flex;justify-content:space-between;align-items:center;gap:8px;text-align:start}.sh .d{margin:0;text-align:end}}
 /* sheet */
@@ -156,6 +163,12 @@ footer{position:relative;z-index:1;text-align:center;font-size:13px;opacity:.75;
   <section class="load" aria-label="عدد المرضى">
     <div class="row"><span>ازدحام المرضى الآن</span><strong id="loadTxt">—</strong></div>
     <div class="bar" id="bar"><i></i><i></i><i></i><i></i></div>
+  </section>
+
+  <section class="tip" id="tip" aria-live="polite">
+    <div class="hd"><span>💡 نصيحة لمرضى السكلر</span><button class="nx" id="tipNext">نصيحة أخرى</button></div>
+    <h4 id="tipT"></h4><p id="tipB"></p>
+    <small>للتوعية فقط، ولا تغني عن استشارة طبيبك.</small>
   </section>
 
   <button class="cta" id="open">أنا داخل المركز – حدّث المناوب</button>
@@ -465,6 +478,17 @@ $("aClear").onclick=async()=>{
   const id=pick.shift.id; delete adminMap[id];
   try{ await db.put("admin",adminMap); $("res").className="status ok"; $("res").textContent="أُلغي الاعتماد لهذه النوبة"; await refresh(); }catch(e){}
 };
+
+/* ===================== نصائح عشوائية ===================== */
+const TIPS = ["اشرب الماء باستمرار: الجفاف من العوامل التي قد تحفّز نوبات الألم. لا تنتظر حتى تشعر بالعطش، ووزّع شرب السوائل على مدار اليوم.", "التزم بدواء الهايدروكسيوريا (Hydroxyurea): من العلاجات المهمة التي تساعد على رفع الهيموغلوبين الجنيني (HbF)، وتقليل نوبات الألم والحاجة إلى دخول المستشفى.", "لا تتعرض للبرد الشديد: التغير المفاجئ في درجات الحرارة والبرد الشديد قد يحفّزان الأزمات لدى بعض المرضى.", "تجنب الإجهاد البدني المفرط: مارس نشاطك بصورة تدريجية، وخذ فترات راحة عند الشعور بالتعب.", "لا تهمل النوم: احرص على نوم منتظم وكافٍ؛ فالإرهاق وقلة النوم قد يؤثران سلباً في قدرتك على التعامل مع المرض.", "لا تهمل التطعيمات: احرص على لقاحات الإنفلونزا والمكورات الرئوية وغيرها من التطعيمات التي يوصي بها طبيبك.", "راقب درجة حرارة جسمك: الحمى لدى مريض السكلر قد تكون علامة على عدوى خطيرة، وتستدعي تقييماً طبياً عاجلاً، خصوصاً عند حرارة 38.5 درجة أو أكثر.", "لا تتجاهل ألم الصدر: ألم الصدر أو ضيق التنفس أو السعال المصحوب بالحمى قد يشير إلى متلازمة الصدر الحادة، وهي حالة طارئة.", "اهتم بصحة الكلى: تابع وظائف الكلى وتحليل البول بصورة دورية، حتى إن لم تشعر بأي أعراض.", "لا تتناول الحديد عشوائياً: فقر الدم المنجلي لا يعني بالضرورة نقص الحديد، وقد يؤدي تناول مكملاته دون حاجة إلى تراكمه في الجسم.", "تناول غذاءً متوازناً: احرص على البروتينات والخضراوات والفواكه ومصادر الفيتامينات والمعادن.", "اسأل طبيبك عن حمض الفوليك: قد يُنصح به لبعض المرضى لدعم إنتاج خلايا الدم الحمراء، لكن الحاجة إليه تختلف من شخص لآخر.", "تجنب التدخين والشيشة: التدخين يقلل كفاءة الجهاز التنفسي ويزيد المخاطر على الرئتين والأوعية الدموية.", "لا تهمل صحة العين: فقر الدم المنجلي قد يؤثر في شبكية العين؛ لذلك يُنصح بفحصها دورياً لدى طبيب العيون.", "تعلم التعامل مع نوبة الألم مبكراً: اتبع خطة علاج الألم المتفق عليها مع طبيبك، ولا تنتظر حتى يصبح الألم لا يُحتمل.", "راقب ضغط الدم: ارتفاع ضغط الدم قد يزيد مخاطر المضاعفات الكلوية والوعائية، لذا احرص على قياسه ومتابعته.", "لا تهمل الفحوصات الدورية: تابع تعداد الدم الكامل (CBC)، ووظائف الكبد والكلى، ونسبة الهيموغلوبين الجنيني (HbF)، والفحوصات الأخرى التي يحددها اختصاصي أمراض الدم."];
+let tipI = -1;
+function showTip(){
+  let i; do{ i=Math.floor(Math.random()*TIPS.length); }while(TIPS.length>1 && (i===tipI || i===LS.get("sk_tip",-1)));
+  tipI=i; LS.set("sk_tip",i);
+  const [t,...b]=TIPS[i].split(": "); $("tipT").textContent=t; $("tipB").textContent=b.join(": ");
+  const el=$("tip"); el.classList.remove("fade"); void el.offsetWidth; el.classList.add("fade");
+}
+$("tipNext").onclick=showTip; showTip();
 
 refresh(); visits(); setInterval(refresh,30000); setInterval(visits,60000);
 }
