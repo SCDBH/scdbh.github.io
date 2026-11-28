@@ -477,7 +477,7 @@ function adminMode(){
 }
 $("admOpen").onclick=()=>{ $("admLogin").hidden=!$("admLogin").hidden; if(!$("admLogin").hidden) $("pw").focus(); };
 $("pwGo").onclick=async()=>{
-  const raw=$("pw").value.normalize("NFKC").trim();
+  const raw=$("pw").value.trim();
   const tries=[raw, raw.replace(/\u2026/g,".."), raw.replace(/\u2026/g,"...")];   // لوحات الجوال قد تحوّل النقاط إلى …
   let ok=false; for(const t of tries) if(CONFIG.adminHashes.includes(await sha(t))) ok=true;
   if(ok){ isAdmin=true; $("admLogin").hidden=true; adminMode(); }
