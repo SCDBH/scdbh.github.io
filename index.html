@@ -104,6 +104,7 @@ footer{position:relative;z-index:1;text-align:center;font-size:13px;opacity:.75;
 .admin{margin-top:22px;border-top:1px solid #eee;padding-top:14px}
 .link{background:none;border:0;color:#555;font:400 14px "Readex Pro",sans-serif;text-decoration:underline;cursor:pointer;min-height:44px}
 .fld{width:100%;font:16px "Readex Pro",sans-serif;border:2px solid #e5e7eb;border-radius:12px;padding:11px 12px;margin-top:6px;background:#fff;color:#111}
+.medl{display:block;margin-top:12px;font-size:14px;color:#444}
 .chk{display:flex;gap:10px;align-items:center;margin-top:14px;font-size:15px}
 .chk input{width:22px;height:22px}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -189,6 +190,10 @@ footer{position:relative;z-index:1;text-align:center;font-size:13px;opacity:.75;
       <div class="grid" id="shifts"></div>
       <h3>الطبيب المناوب</h3>
       <div class="grid" id="docs"></div>
+      <div id="medBox" hidden>
+        <label for="medName" class="medl">تعرف اسم الدكتور؟ اكتبه هنا (اختياري)</label>
+        <input class="fld" id="medName" maxlength="40" placeholder="مثال: محمد" autocomplete="off">
+      </div>
       <h3>عدد المرضى</h3>
       <div class="grid" id="loads"></div>
       <label class="chk" id="holRow" hidden><input type="checkbox" id="aHol"> اعتبر اليوم إجازة رسمية</label>
@@ -399,7 +404,15 @@ addEventListener("resize",resize); resize(); requestAnimationFrame(draw);
 let pick={shift:null,doctor:null,load:null}, fix=null, isAdmin=false, avail=[];
 $("docs").innerHTML = DOCTORS.map((d,i)=>`<button class="opt" data-d="${i}" aria-pressed="false">${esc(d)}</button>`).join("");
 $("loads").innerHTML = LOADS.map(l=>`<button class="opt" data-l="${l.k}" aria-pressed="false">${l.t}<small>${l.s}</small></button>`).join("");
-$("docs").onclick=e=>{const b=e.target.closest("[data-d]");if(!b)return;pick.doctor=DOCTORS[+b.dataset.d];mark("docs",b)};
+const MEDICAL = "دكتور (ميدكل)";
+$("docs").onclick=e=>{const b=e.target.closest("[data-d]");if(!b)return;pick.doctor=DOCTORS[+b.dataset.d];mark("docs",b);
+  $("medBox").hidden = pick.doctor!==MEDICAL; if(!$("medBox").hidden) $("medName").focus();};
+// اسم الطبيب النهائي: إن اختار ميدكل وكتب اسماً → "دكتور الاسم (ميدكل)"
+function chosenDoctor(){
+  if(pick.doctor!==MEDICAL) return pick.doctor;
+  const n=$("medName").value.replace(/\s+/g," ").trim().replace(/^(دكتورة|دكتور|الدكتور|د\.?)\s*/,"").slice(0,40);
+  return n ? `دكتور ${n} (ميدكل)` : MEDICAL;
+}
 $("loads").onclick=e=>{const b=e.target.closest("[data-l]");if(!b)return;pick.load=+b.dataset.l;mark("loads",b)};
 $("shifts").onclick=e=>{const b=e.target.closest("[data-s]");if(!b)return;pick.shift=avail[+b.dataset.s];mark("shifts",b)};
 function mark(g,b){[...$(g).children].forEach(x=>x.setAttribute("aria-pressed",x===b));validate()}
@@ -423,6 +436,7 @@ function buildShifts(){
 function resetForm(){
   pick={shift:null,doctor:null,load:null};
   for(const g of ["docs","loads"]) [...$(g).children].forEach(x=>x.setAttribute("aria-pressed","false"));
+  $("medBox").hidden=true; $("medName").value="";
   buildShifts(); $("res").textContent="";
 }
 
@@ -456,10 +470,10 @@ $("send").onclick=async()=>{
     if(isAdmin){
       const hd=ymd(bh(Date.now())), day=s.day;
       if($("aHol").checked!==!!extraHol[hd]){ if($("aHol").checked) await db.put(`holidays/${hd}`,true); else await db.del(`holidays/${hd}`); }
-      adminMap[s.id]={doctor:pick.doctor,t:Date.now()}; await db.put("admin",adminMap);
-      await db.push(`votes/${day}`,{shift:s.id,doctor:pick.doctor,load:pick.load,t:Date.now(),admin:true});
+      adminMap[s.id]={doctor:chosenDoctor(),t:Date.now()}; await db.put("admin",adminMap);
+      await db.push(`votes/${day}`,{shift:s.id,doctor:chosenDoctor(),load:pick.load,t:Date.now(),admin:true});
     }else{
-      await db.push(`votes/${s.day}`,{shift:s.id,doctor:pick.doctor,load:pick.load,t:Date.now(),...fix});
+      await db.push(`votes/${s.day}`,{shift:s.id,doctor:chosenDoctor(),load:pick.load,t:Date.now(),...fix});
       voted[s.id]=1; LS.set("sk_voted2",voted);
     }
     r.className="status ok"; r.textContent=isAdmin?"تم الحفظ والاعتماد.":"شكراً! تم تحديث المناوبة.";
