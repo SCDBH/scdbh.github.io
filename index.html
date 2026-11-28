@@ -199,7 +199,7 @@ footer{position:relative;z-index:1;text-align:center;font-size:13px;opacity:.75;
     <div class="admin" id="admArea">
       <button class="link" id="admOpen">إدخال الطبيب للأدمن</button>
       <div id="admLogin" hidden>
-        <input class="fld" id="pw" type="password" placeholder="كلمة المرور" autocomplete="off">
+        <input class="fld" id="pw" type="password" placeholder="كلمة المرور" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
         <button class="send dark" id="pwGo">دخول</button>
         <div class="status" id="pwRes"></div>
       </div>
@@ -477,7 +477,10 @@ function adminMode(){
 }
 $("admOpen").onclick=()=>{ $("admLogin").hidden=!$("admLogin").hidden; if(!$("admLogin").hidden) $("pw").focus(); };
 $("pwGo").onclick=async()=>{
-  if(CONFIG.adminHashes.includes(await sha($("pw").value.trim()))){ isAdmin=true; $("admLogin").hidden=true; adminMode(); }
+  const raw=$("pw").value.normalize("NFKC").trim();
+  const tries=[raw, raw.replace(/\u2026/g,".."), raw.replace(/\u2026/g,"...")];   // لوحات الجوال قد تحوّل النقاط إلى …
+  let ok=false; for(const t of tries) if(CONFIG.adminHashes.includes(await sha(t))) ok=true;
+  if(ok){ isAdmin=true; $("admLogin").hidden=true; adminMode(); }
   else { $("pwRes").className="status err"; $("pwRes").textContent="كلمة المرور غير صحيحة"; }
 };
 $("pw").onkeydown=e=>{if(e.key==="Enter")$("pwGo").click()};
