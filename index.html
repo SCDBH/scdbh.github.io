@@ -220,7 +220,7 @@ const CONFIG = {
   holidays: ["01-01","05-01","12-16","12-17"]
 };
 const DOCTORS = ["دكتور سيد شرف المزعل","دكتور جعفر آل طوق","دكتور ممدوح","دكتور سيد رائد الموسوي","دكتور أحمد","دكتورة ضحى","دكتور معاذ","دكتور كمال","دكتور حسين فتحي","دكتور (ميدكل)"];
-const EXPECTED_DAY = "دكتور سيد شرف المزعل";   // النهار: السبت – الخميس (أيام العمل)
+const EXPECTED_DAY = "دكتور سيد شرف المزعل";   // النهار: الأحد – الخميس (عدا الإجازات)
 const EXPECTED_N2  = "دكتور ممدوح";      // آخر ليل: كل أيام الأسبوع
 const SHIFTS = {
   work:[ {k:"day",n:"نهار",t:"7 ص – 2 م",s:420,e:840}, {k:"n1",n:"أول ليل",t:"2 م – 10 م",s:840,e:1350}, {k:"n2",n:"آخر ليل",t:"10:30 م – 7 ص",s:1350,e:1860} ],
@@ -275,7 +275,7 @@ function current(ms=Date.now()){
 function expected(day, k){
   const wd = new Date(day+"T00:00:00Z").getUTCDay();
   if(k==="n2") return EXPECTED_N2;
-  if(k==="day" && wd!==5 && !isHoliday(day)) return EXPECTED_DAY;
+  if(k==="day" && wd!==5 && wd!==6 && !isHoliday(day)) return EXPECTED_DAY;
   return null;
 }
 
