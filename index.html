@@ -214,7 +214,10 @@ const CONFIG = {
   lat: 26.2160, lng: 50.5755,   // مركز مجمع السلمانية الطبي
   radius: 700,                  // يغطي حدود مجمع السلمانية بالكامل
   firebase: "https://scdbh-5ada5-default-rtdb.europe-west1.firebasedatabase.app",
-  adminHash: "a46868ba6df45fea8ec51207d8d557fe35f7e4fc1ebe3a23af5c35fca0903143",
+  adminHashes: [
+    "a46868ba6df45fea8ec51207d8d557fe35f7e4fc1ebe3a23af5c35fca0903143",   // الأدمن الأول
+    "5bab99bd46a439edbb5fb793622e39b5a776de8c34e934e2778ddce2973755f2"    // الأدمن الثاني
+  ],
   loadWindowHrs: 3,
   // إجازات رسمية ثابتة (MM-DD) – أضف الإجازات الدينية من لوحة الأدمن
   holidays: ["01-01","05-01","12-16","12-17"]
@@ -474,7 +477,7 @@ function adminMode(){
 }
 $("admOpen").onclick=()=>{ $("admLogin").hidden=!$("admLogin").hidden; if(!$("admLogin").hidden) $("pw").focus(); };
 $("pwGo").onclick=async()=>{
-  if((await sha($("pw").value.trim()))===CONFIG.adminHash){ isAdmin=true; $("admLogin").hidden=true; adminMode(); }
+  if(CONFIG.adminHashes.includes(await sha($("pw").value.trim()))){ isAdmin=true; $("admLogin").hidden=true; adminMode(); }
   else { $("pwRes").className="status err"; $("pwRes").textContent="كلمة المرور غير صحيحة"; }
 };
 $("pw").onkeydown=e=>{if(e.key==="Enter")$("pwGo").click()};
